@@ -21,6 +21,7 @@ CREATE TABLE employees (
     last_name VARCHAR(30) NOT NULL,
     role_id INTEGER NOT NULL,
     -- manager_id tells whether or not the employee is a manager
-    manager_id BOOLEAN NOT NULL, 
+    manager_id BOOLEAN NOT NULL,
+    manager_name VARCHAR(60), 
     FOREIGN KEY (role_id) REFERENCES roles(r_id) ON DELETE CASCADE
 );
