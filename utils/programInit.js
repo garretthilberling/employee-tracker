@@ -43,7 +43,7 @@ function homeMenu() {
 }
 
 function viewDepts () {
-    const sql = `SELECT * FROM departments`;
+    const sql = `SELECT d_id AS id, dept_name AS name FROM departments`;
     db.query(sql, (err, rows) => {
         if (err) {
         console.log(err.message);
@@ -57,9 +57,9 @@ function viewDepts () {
 }
 
 function viewRoles () {
-    //THEN I am presented with the *job title*, *role id*, the *department* that role belongs to, and the *salary* for that role
-    // job title, role id, department, salary
-    const sql = `SELECT dept_id, role_title, role_dept, role_salary FROM roles INNER JOIN departments ON roles.role_dept = departments.dept_name`;
+    //id, title, department, salary
+    const sql = `SELECT r_id AS id, role_title AS title, dept_name AS department, role_salary AS salary FROM roles
+    LEFT JOIN departments ON roles.dept_id = departments.d_id`;
     db.query(sql, (err, rows) => {
         if (err) {
         console.log(err.message);
@@ -73,7 +73,9 @@ function viewRoles () {
 }
 
 function viewEmployees () {
-    const sql = `SELECT role_title FROM roles`;
+    // id, first_name, last_name, title, department, salary, manager
+    const sql = `SELECT e_id as id, first_name, last_name, role_title AS title, role_salary AS salary FROM employees
+    LEFT JOIN roles ON employees.role_id = roles.r_id`;
     db.query(sql, (err, rows) => {
         if (err) {
         console.log(err.message);
@@ -83,13 +85,43 @@ function viewEmployees () {
 }
 
 function addRole () {
-    const sql = `SELECT role_title FROM roles`;
-    db.query(sql, (err, rows) => {
-        if (err) {
-        console.log(err.message);
-        }
-        console.table(rows);
+    // to use our data as choices in inquirer we need to return it as a promise and pass it through with resolve
+    const getDepartments = new Promise((resolve, reject) => {
+        var departmentsArr = [];
+        const sql = `SELECT dept_name FROM departments`;
+        db.query(sql, (err, rows) => {
+            if (err) {
+            console.log(err.message);
+            }        
+            for (var i = 0; i < rows.length; i++) {
+                departmentsArr.push(Object.values(rows[i])[0]);
+                    // rows is an array of objects. 
+                    // we get the value of each object in the array which would convert it 
+                    // to an array of strings. to avoid pushing an array into an array each  
+                    // time we push item [0] of the rows array into departmentsArr.
+            }
+            console.log(departmentsArr);
+            resolve(departmentsArr);
+            // console.log(rows);
+            // console.log(Object.values(rows[1]));
+            // console.log(Object.values(rows[1])[0]);
+        });
     });
+
+    getDepartments
+    .then((departmentsArr) =>{
+        inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'deptName',
+                message: 'Choose the department of your role',
+                choices:  departmentsArr
+            }
+        ]);
+        
+    });
+        
 }
 
 function addEmployee () {

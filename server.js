@@ -5,5 +5,7 @@ db.connect(err => {
   if (err) throw err;
   console.log('');
   console.log('Database connected.');
-  programInit();
+  setTimeout(() => {
+    programInit();
+  }, 500);
 });
