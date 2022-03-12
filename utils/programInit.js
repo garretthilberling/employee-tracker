@@ -102,9 +102,6 @@ function addRole () {
             }
             console.log(departmentsArr);
             resolve(departmentsArr);
-            // console.log(rows);
-            // console.log(Object.values(rows[1]));
-            // console.log(Object.values(rows[1])[0]);
         });
     });
 
@@ -114,11 +111,64 @@ function addRole () {
         .prompt([
             {
                 type: 'list',
-                name: 'deptName',
+                name: 'deptId',
                 message: 'Choose the department of your role',
-                choices:  departmentsArr
+                choices:  departmentsArr,
+                filter: deptIdInput => {
+                    if (deptIdInput) {
+                        return departmentsArr.indexOf(deptIdInput);
+                    }
+                }
+            },
+            {
+                type: 'text',
+                name: 'roleTitle',
+                message: 'What is the title of your role?',
+                validate: roleTitleInput => {
+                    if (roleTitleInput) {
+                        return true;
+                    } else {
+                        console.log('Please enter a title for your role!')
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'number',
+                name: 'roleSalary',
+                message: 'What is the salary of your role?',
+                validate: roleSalaryInput => {
+                    if (!roleSalaryInput || roleSalaryInput === NaN) {
+                        console.log('');
+                        console.log('Please enter a valid salary for your role! (plain number, no formatting)')
+                        return false;
+                    } else {
+                        return true;
+                    }
+                },
+                filter: roleSalaryInput => {
+                    if (!roleSalaryInput || roleSalaryInput === NaN) {
+                        return '';
+                    } else {
+                        return roleSalaryInput;
+                    }
+
+                }
             }
-        ]);
+        ])
+        .then(
+            ({ deptId, roleTitle, roleSalary }) => {
+                console.log(deptId+1);
+                const sql = "INSERT INTO roles (dept_id, role_title, role_salary) VALUES (?,?,?)" 
+                const query = [deptId+1, roleTitle, roleSalary]
+                db.query(sql, query, (err, rows) => {
+                    if (err) {
+                    console.log(err.message);
+                    }        
+                    console.table(rows);
+                });
+            }
+        )
         
     });
         
