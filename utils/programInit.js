@@ -18,7 +18,7 @@ function homeMenu() {
                 type: 'list',
                 name: 'home',
                 message: 'What would you like to do?',
-                choices: ['View all departments', 'View all roles', 'View all employees', 'Add a role', 'Add an employee', 'Update an employee', 'Exit']
+                choices: ['View all departments', 'View all roles', 'View all employees', 'Add a role', 'Add a department', 'Add an employee', 'Update an employee', 'Exit']
             }
         )
         .then (
@@ -31,6 +31,8 @@ function homeMenu() {
                     viewEmployees();
                 } else if (home === 'Add a role') {
                     addRole();
+                } else if (home === 'Add a department') {
+                    addDepartment();
                 } else if (home === 'Add an employee') {
                     addEmployee();
                 } else if (home === 'Update an employee') {
@@ -100,7 +102,6 @@ function addRole () {
                     // to an array of strings. to avoid pushing an array into an array each  
                     // time we push item [0] of the rows array into departmentsArr.
             }
-            console.log(departmentsArr);
             resolve(departmentsArr);
         });
     });
@@ -158,9 +159,8 @@ function addRole () {
         ])
         .then(
             ({ deptId, roleTitle, roleSalary }) => {
-                console.log(deptId+1);
                 const sql = "INSERT INTO roles (dept_id, role_title, role_salary) VALUES (?,?,?)" 
-                const query = [deptId+1, roleTitle, roleSalary]
+                const query = [deptId+1, roleTitle, roleSalary] //deptId starts at 0 so we add one so it accurately refelctes the dept the roles is under
                 db.query(sql, query, (err, rows) => {
                     if (err) {
                     console.log(err.message);
@@ -174,14 +174,103 @@ function addRole () {
         
 }
 
+function addDepartment () {
+
+}
+
 function addEmployee () {
-    const sql = `SELECT role_title FROM roles`;
-    db.query(sql, (err, rows) => {
-        if (err) {
-        console.log(err.message);
-        }
-        console.table(rows);
+    // to get the job titles from our database
+    const getTitles = new Promise((resolve, reject) => {
+        var titlesArr = [];
+        const sql = `SELECT role_title FROM roles`;
+        db.query(sql, (err, rows) => {
+            if (err) {
+            console.log(err.message);
+            }        
+            for (var i = 0; i < rows.length; i++) {
+                titlesArr.push(Object.values(rows[i])[0]); // same as in addRole()!
+            }
+            resolve(titlesArr);
+        });
     });
+    // to get a list of managers for user to choose from
+    const getManagerList = new Promise((resolve, reject) => {
+        var managerArr = [];
+        const sql = `SELECT first_name, last_name FROM employees WHERE manager_id = TRUE`;
+        db.query(sql, (err, rows) => {
+            if (err) {
+            console.log(err.message);
+            }        
+            for (var i = 0; i < rows.length; i++) {
+                managerArr.push(Object.values(rows[i])[0]); // same as in addRole()!
+            }
+            managerArr.push("Employee's manager not listed");
+            resolve(managerArr);
+        });
+    });
+
+    Promise.all([getTitles, getManagerList])
+    .then(([titlesArr,managerArr]) => {
+        inquirer
+        .prompt([
+            {
+                type: 'text',
+                name: 'firstname',
+                message: 'Employee First Name:',
+                validate: firstnameInput => {
+                    if (firstnameInput) {
+                        return true;
+                    } else {
+                        console.log('Please enter a first name!')
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'text',
+                name: 'lastname',
+                message: 'Employee Last Name:',
+                validate: lastnameInput => {
+                    if (lastnameInput) {
+                        return true;
+                    } else {
+                        console.log('Please enter a last name!')
+                        return false;
+                    }
+                }
+            },
+            {
+                type: 'list',
+                name: 'roleTitle',
+                message: "Choose the employee's role title",
+                choices:  titlesArr,
+                filter: roleTitleInput => {
+                    if (roleTitleInput) {
+                        return titlesArr.indexOf(roleTitleInput);
+                    }
+                }
+            },
+            {
+                type: 'confirm',
+                name: 'isManagerConfirm',
+                message: 'Does this employee a manager that oversees other employees?'
+            },
+            {
+                type: 'list',
+                name: 'managerName',
+                message: 'Select name of manager',
+                when: ({ isManagerConfirm }) => {
+                    if (isManagerConfirm) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                },
+                choices: managerArr
+            }
+        ])
+    })
+    
 }
 
 function updateEmployee () {
