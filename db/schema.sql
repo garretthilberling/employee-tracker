@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS departments;
 
-CREATE TABLE departments (
+CREATE TABLE departments        
     d_id INTEGER AUTO_INCREMENT PRIMARY KEY,
     dept_name VARCHAR(60) NOT NULL
 );
@@ -24,4 +24,5 @@ CREATE TABLE employees (
     manager_id BOOLEAN NOT NULL,
     manager_name VARCHAR(60), 
     FOREIGN KEY (role_id) REFERENCES roles(r_id) ON DELETE CASCADE
+d) ON DELETE CASCADE
 );
