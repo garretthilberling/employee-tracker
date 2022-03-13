@@ -311,13 +311,75 @@ function addEmployee () {
 }
 
 function updateEmployee () {
-    const sql = `SELECT role_title FROM roles`;
-    db.query(sql, (err, rows) => {
-        if (err) {
-        console.log(err.message);
-        }
-        console.table(rows);
+    const getTitles = new Promise((resolve, reject) => {
+        var titlesArr = [];
+        const sql = `SELECT role_title FROM roles`;
+        db.query(sql, (err, rows) => {
+            if (err) {
+            console.log(err.message);
+            }        
+            for (var i = 0; i < rows.length; i++) {
+                titlesArr.push(Object.values(rows[i])[0]); // same as in addRole()!
+            }
+            resolve(titlesArr);
+        });
     });
+
+    const getEmployees = new Promise((resolve, reject) => {
+        var employeesArr = [];
+        const sql = `SELECT first_name, last_name FROM employees`;
+        db.query(sql, (err, rows) => {
+            if (err) {
+            console.log(err.message);
+            }        
+            for (var i = 0; i < rows.length; i++) {
+                employeesArr.push(Object.values(rows[i])[0] + ' ' + Object.values(rows[i])[1]); // same as in addRole()!
+            }
+            resolve(employeesArr);
+        });
+    });
+
+    Promise.all([getTitles, getEmployees])
+    .then(([titlesArr,employeesArr]) => {
+        inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'employeeName',
+                message: 'Which employee would you like to update?',
+                choices: employeesArr,
+                filter: employeeNameInput => {
+                    if (employeeNameInput) {
+                        return employeesArr.indexOf(employeeNameInput);
+                    } //since the list will be ordered by id we can return the index and use that as e_id
+                }
+            },
+            {
+                type: 'list',
+                name: 'employeeRole',
+                message: 'Select the new role for this employee.',
+                choices: titlesArr,
+                filter: employeeRoleInput => {
+                    if (employeeRoleInput) {
+                        return titlesArr.indexOf(employeeRoleInput);
+                    }
+                }
+            }
+        ])
+        .then(
+            ({ employeeName, employeeRole }) => {
+                const sql = "UPDATE employees SET role_id = ? WHERE e_id = ?";
+                const query = [employeeRole+1, employeeName+1];
+                db.query(sql, query, (err, rows) => {
+                    if (err) {
+                    console.log(err.message);
+                    }        
+                    console.table(rows);
+                    homeMenu();
+                });
+            }
+        )
+    })
 }
 
 function endProgram () {
@@ -328,7 +390,7 @@ function endProgram () {
         console.log(`                                   ~ Goodbye`);
     }, 800);
     setTimeout(() =>{
-        process.exit(1);
+        process.exit(1); //exits the terminal process
     }, 1300);
 }
 
