@@ -52,10 +52,10 @@ function viewDepts () {
         }
         console.log('');
         console.table(rows);
+        setTimeout(() => {
+            homeMenu();
+        }, 800);
     });
-    setTimeout(() => {
-        homeMenu();
-    }, 800);
 }
 
 function viewRoles () {
@@ -68,21 +68,24 @@ function viewRoles () {
         }
         console.log('');
         console.table(rows);
+        setTimeout(() => {
+            homeMenu();
+        }, 800);
     });
-    setTimeout(() => {
-        homeMenu();
-    }, 800);
 }
 
 function viewEmployees () {
     // id, first_name, last_name, title, department, salary, manager
-    const sql = `SELECT e_id as id, first_name, last_name, role_title AS title, role_salary AS salary FROM employees
+    const sql = `SELECT e_id as id, first_name, last_name, role_title AS title, role_salary AS salary, manager_name FROM employees
     LEFT JOIN roles ON employees.role_id = roles.r_id`;
     db.query(sql, (err, rows) => {
         if (err) {
         console.log(err.message);
         }
         console.table(rows);
+        setTimeout(() => {
+            homeMenu();
+        }, 800);
     });
 }
 
@@ -166,6 +169,7 @@ function addRole () {
                     console.log(err.message);
                     }        
                     console.table(rows);
+                    homeMenu();
                 });
             }
         )
@@ -175,7 +179,27 @@ function addRole () {
 }
 
 function addDepartment () {
-
+    inquirer
+    .prompt([
+        {
+            type: 'text',
+            name: 'newDept',
+            message: 'Enter the department name:'
+        }
+    ])
+    .then(
+        ({ newDept }) => {
+            const sql = "INSERT INTO departments (dept_name) VALUES (?)";
+                const query = [newDept];
+                db.query(sql, query, (err, rows) => {
+                    if (err) {
+                    console.log(err.message);
+                    }        
+                    console.table(rows);
+                    homeMenu();
+                });
+        }
+    )
 }
 
 function addEmployee () {
@@ -202,13 +226,13 @@ function addEmployee () {
             console.log(err.message);
             }        
             for (var i = 0; i < rows.length; i++) {
-                managerArr.push(Object.values(rows[i])[0]); // same as in addRole()!
+                managerArr.push(Object.values(rows[i])[0] + ' ' + Object.values(rows[i])[1]); // we need to get the first and last name
             }
             managerArr.push("Employee's manager not listed");
             resolve(managerArr);
         });
     });
-
+    // Promise.all([promises]) allows use to run multiple promises at once so we can pass through the data from each.
     Promise.all([getTitles, getManagerList])
     .then(([titlesArr,managerArr]) => {
         inquirer
@@ -241,26 +265,26 @@ function addEmployee () {
             },
             {
                 type: 'list',
-                name: 'roleTitle',
+                name: 'roleId',
                 message: "Choose the employee's role title",
                 choices:  titlesArr,
-                filter: roleTitleInput => {
-                    if (roleTitleInput) {
-                        return titlesArr.indexOf(roleTitleInput);
+                filter: roleIdInput => {
+                    if (roleIdInput) {
+                        return titlesArr.indexOf(roleIdInput);
                     }
                 }
             },
             {
                 type: 'confirm',
                 name: 'isManagerConfirm',
-                message: 'Does this employee a manager that oversees other employees?'
+                message: 'Is this employee a manager that oversees other employees?'
             },
             {
                 type: 'list',
                 name: 'managerName',
                 message: 'Select name of manager',
                 when: ({ isManagerConfirm }) => {
-                    if (isManagerConfirm) {
+                    if (!isManagerConfirm) {
                         return true;
                     } else {
                         return false;
@@ -269,6 +293,19 @@ function addEmployee () {
                 choices: managerArr
             }
         ])
+        .then(
+            ({ firstname, lastname, roleId, isManagerConfirm, managerName }) => {
+                const sql = "INSERT INTO employees (first_name, last_name, role_id, manager_id, manager_name) VALUES (?,?,?,?,?)";
+                const query = [firstname, lastname, roleId+1, isManagerConfirm, managerName];
+                db.query(sql, query, (err, rows) => {
+                    if (err) {
+                    console.log(err.message);
+                    }        
+                    console.table(rows);
+                    homeMenu();
+                });
+            }
+        )
     })
     
 }
@@ -281,6 +318,18 @@ function updateEmployee () {
         }
         console.table(rows);
     });
+}
+
+function endProgram () {
+    console.log('');
+    console.log('Thank you for using Employee Tracker!')
+    setTimeout(() =>{
+        console.log('');
+        console.log(`                                   ~ Goodbye`);
+    }, 800);
+    setTimeout(() =>{
+        process.exit(1);
+    }, 1300);
 }
 
 module.exports = programInit;
