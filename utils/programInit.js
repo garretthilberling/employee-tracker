@@ -84,8 +84,10 @@ function viewRoles() {
 
 function viewEmployees() {
   // id, first_name, last_name, title, department, salary, manager
-  const sql = `SELECT e_id as id, first_name, last_name, role_title AS title, role_salary AS salary, manager_name FROM employees
-    LEFT JOIN roles ON employees.role_id = roles.r_id`;
+  const sql = ` SELECT e.e_id as id, concat(e.first_name,' ', e.last_name) AS employee, e.role_title AS title, e.role_salary AS salary, e.dept_name AS department, 
+                CASE WHEN e.manager_id = e.e_id THEN concat('N/A') ELSE concat(m.first_name, ' ', m.last_name) END AS manager 
+                FROM (SELECT * FROM employees LEFT JOIN roles ON employees.role_id = roles.r_id LEFT JOIN departments ON roles.dept_id = departments.d_id) AS e, employees m 
+                WHERE m.e_id = e.manager_id; `;
   db.query(sql, (err, rows) => {
     if (err) {
       console.log(err.message);
@@ -223,8 +225,23 @@ function addRole() {
           if (err) {
             console.log(err.message);
           }
-          console.table(rows);
-          homeMenu();
+          console.log('');
+            console.log(`                                   Success!`);
+            inquirer
+            .prompt (
+              {
+                type: 'confirm',
+                name: 'results',
+                message: 'See results?'
+              }
+            ).then(({ results }) => {
+              if (results) {
+                console.log('');
+                viewRoles();
+              } else {
+                homeMenu();
+              }
+            });
         });
       });
   });
@@ -246,8 +263,23 @@ function addDepartment() {
         if (err) {
           console.log(err.message);
         }
-        console.table(rows);
-        homeMenu();
+        console.log('');
+            console.log(`                                   Success!`);
+            inquirer
+            .prompt (
+              {
+                type: 'confirm',
+                name: 'results',
+                message: 'See results?'
+              }
+            ).then(({ results }) => {
+              if (results) {
+                console.log('');
+                viewDepts();
+              } else {
+                homeMenu();
+              }
+            });
       });
     });
 }
@@ -270,7 +302,7 @@ function addEmployee() {
   // to get a list of managers for user to choose from
   const getManagerList = new Promise((resolve, reject) => {
     var managerArr = [];
-    const sql = `SELECT first_name, last_name FROM employees WHERE manager_id = TRUE`;
+    const sql = `SELECT first_name, last_name FROM employees FULL OUTER JOIN ON employees.manager_id = employees.e_id`;
     db.query(sql, (err, rows) => {
       if (err) {
         console.log(err.message);
@@ -284,8 +316,24 @@ function addEmployee() {
       resolve(managerArr);
     });
   });
+  // we get the ids the same way
+  const getManIdList = new Promise((resolve, reject) => {
+    var manIdArr = [];
+    const sql = `SELECT e_id FROM employees WHERE is_manager = 1`;
+    db.query(sql, (err, rows) => {
+      if (err) {
+        console.log(err.message);
+      }
+      for (var i = 0; i < rows.length; i++) {
+        manIdArr.push(
+          Object.values(rows[i])[0]
+        );
+      }
+      resolve(manIdArr);
+    });
+  });
   // Promise.all([promises]) allows use to run multiple promises at once so we can pass through the data from each.
-  Promise.all([getTitles, getManagerList]).then(([titlesArr, managerArr]) => {
+  Promise.all([getTitles, getManagerList, getManIdList]).then(([titlesArr, managerArr, manIdArr]) => {
     inquirer
       .prompt([
         {
@@ -320,7 +368,9 @@ function addEmployee() {
           message: "Choose the employee's role title",
           choices: titlesArr,
           filter: (roleIdInput) => {
-            if (roleIdInput) {
+            if (roleIdInput === "Employee's manager not listed") {
+              return 0; // no one has an e_id of 0, so no manager will be assigned.
+            } else {
               return titlesArr.indexOf(roleIdInput);
             }
           },
@@ -342,25 +392,47 @@ function addEmployee() {
             }
           },
           choices: managerArr,
-        },
+        }
       ])
       .then(
         ({ firstname, lastname, roleId, isManagerConfirm, managerName }) => {
+          const getIndex = () => {
+            return managerArr.indexOf(managerName); // we set up the manIdArr exactly the same as this array so we can use the index of this answer to get the corresponding manager_id
+          }
+          const getManId = () => {
+            return manIdArr.indexOf(getIndex);
+          }
           const sql =
-            "INSERT INTO employees (first_name, last_name, role_id, manager_id, manager_name) VALUES (?,?,?,?,?)";
+            `INSERT INTO employees (first_name, last_name, role_id, is_manager, manager_name, manager_id) VALUES (?,?,?,?,?,?)`;
           const query = [
             firstname,
             lastname,
-            roleId + 1,
+            (roleId + 1),
             isManagerConfirm,
             managerName,
-          ];
+            getManId
+          ]; 
           db.query(sql, query, (err, rows) => {
             if (err) {
               console.log(err.message);
             }
-            console.table(rows);
-            homeMenu();
+            console.log('');
+            console.log(`                                   Success!`);
+            inquirer
+            .prompt (
+              {
+                type: 'confirm',
+                name: 'results',
+                message: 'See results?'
+              }
+            ).then(({ results }) => {
+              if (results) {
+                console.log('');
+                viewEmployees();
+              } else {
+                homeMenu();
+              }
+            })
           });
         }
       );
@@ -431,8 +503,23 @@ function updateEmployee() {
           if (err) {
             console.log(err.message);
           }
-          console.table(rows);
-          homeMenu();
+          console.log('');
+            console.log(`             Success!`);
+            inquirer
+            .prompt (
+              {
+                type: 'confirm',
+                name: 'results',
+                message: 'See results?'
+              }
+            ).then(({ results }) => {
+              if (results) {
+                console.log('');
+                viewEmployees();
+              } else {
+                homeMenu();
+              }
+            })
         });
       });
   });
@@ -443,7 +530,7 @@ function endProgram() {
   console.log("Thank you for using Employee Tracker!");
   setTimeout(() => {
     console.log("");
-    console.log(`                                   ~ Goodbye`);
+    console.log(`                     Goodbye`);
   }, 800);
   setTimeout(() => {
     process.exit(1); //exits the terminal process
