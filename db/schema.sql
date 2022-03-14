@@ -25,7 +25,3 @@ CREATE TABLE employees (
     FOREIGN KEY (role_id) REFERENCES roles(r_id) ON DELETE CASCADE,
     FOREIGN KEY (manager_id) REFERENCES employees(e_id) ON DELETE CASCADE
 );
-
-SELECT e.e_id as id, concat(e.first_name,' ', e.last_name) AS employee, concat(m.first_name, ' ', m.last_name) AS manager, e.role_title AS title, e.role_salary AS salary FROM (SELECT * FROM employees LEFT JOIN roles ON employees.role_id = roles.r_id) AS e, employees m WHERE m.e_id = e.manager_id;
-
-SELECT e.e_id as id, concat(e.first_name,' ', e.last_name) AS employee, e.role_title AS title, e.role_salary AS salary, e.dept_name AS department, CASE WHEN e.manager_id = e.e_id THEN concat('N/A') ELSE concat(m.first_name, ' ', m.last_name) END AS manager FROM (SELECT * FROM employees LEFT JOIN roles ON employees.role_id = roles.r_id LEFT JOIN departments ON roles.dept_id = departments.d_id) AS e, employees m WHERE m.e_id = e.manager_id;

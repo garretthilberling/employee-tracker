@@ -26,4 +26,4 @@ VALUES
 ('Rebecca', 'Rogers', 2, 1),
 ('Samantha', 'Smith', 4, 1),
 ('Quincy', 'Quiverton', 5, 1),
-('Andrea', 'Anderson', 6, 1);
+('Andrea', 'Anderson', 6, 5);
