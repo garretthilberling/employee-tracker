@@ -21,7 +21,7 @@ CREATE TABLE employees (
     last_name VARCHAR(30) NOT NULL,
     role_id INTEGER NOT NULL,
     -- id defaults to 0 because no one has an id of 0. 
-    manager_id INTEGER NOT NULL DEFAULT 1,
+    manager_id INTEGER DEFAULT 1,
     FOREIGN KEY (role_id) REFERENCES roles(r_id) ON DELETE CASCADE,
     FOREIGN KEY (manager_id) REFERENCES employees(e_id) ON DELETE CASCADE
 );

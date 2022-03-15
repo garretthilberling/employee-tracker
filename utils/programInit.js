@@ -411,9 +411,9 @@ function addEmployee() {
           name: "managerID2",
           message: "Select name of manager",
           choices: managerArr,
-          filter: managerID2Input => {
+          filter: (managerID2Input) => {
             if (managerID2Input === "Employee does not have a manager") {
-              return 1; //defaults to CEO
+              return managerID2Input;
             } else {
               return managerArr.indexOf(managerID2Input) + 1;
             }
@@ -430,8 +430,13 @@ function addEmployee() {
       .then(
         ({ firstname, lastname, roleId, managerID1, managerID2 }) => {          
           const getManId = () => {
-            if (isNaN(managerID1) === true) {
-              return managerID2; // returns 1,2,3... etc depending on user input 
+            if (isNaN(managerID1)) {
+              if(isNaN(managerID2)) {
+                managerArr.push(firstname + ' ' + lastname);
+                return managerArr.indexOf(firstname + ' ' + lastname);
+              } else {
+                return managerID2; // returns 1,2,3... etc depending on user input 
+              }
             } else {
               return manIdArr[managerID1]; // we got the index of the validate statement of this question. 
                                           //since the tables are set up the same way we can use the same index to get the ids stored in manIdArr
