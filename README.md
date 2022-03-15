@@ -13,7 +13,7 @@ E-T is an application designed to help clients manage a database of employees an
 ## Usage
 Here is a video demonstration of how to use this app:
 
-[![video demonstration](./assets/img/application-screenshot.png)](https://drive.google.com/file/d/1xFHZTeXDYdhLvebp4uuoaBBIknKDNUm-/view?usp=sharing)
+[![video demonstration](./assets/img/application-screenshot.png)](https://drive.google.com/file/d/1YioDuPf3SD0VFJLZ1V6n_pK2-ZYGpj6u/view)
 
 ## Installation
 To use this application the user will need to clone this repository to their machine.
