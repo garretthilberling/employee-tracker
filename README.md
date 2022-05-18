@@ -8,7 +8,7 @@
 * [Credits](#Credits)
 
 ## Description
-E-T is an application designed to help clients manage a database of employees and managers. The languages and technologies used to build this application are JavaScript, ES6, Node.js, Inquirer, MySQL, & Console.Table. 
+E-T is a Node.js application designed to help clients manage a database of employees and managers. The languages and technologies used to build this application are JavaScript, ES6, Node.js, Inquirer, MySQL, & Console.Table. 
 
 ## Usage
 Here is a video demonstration of how to use this app:
