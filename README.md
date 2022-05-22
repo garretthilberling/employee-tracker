@@ -13,7 +13,13 @@ E-T is a Node.js application designed to help clients manage a database of emplo
 ## Usage
 Here is a video demonstration of how to use this app:
 
-[![video demonstration](./assets/img/application-screenshot.png)](https://drive.google.com/file/d/1YioDuPf3SD0VFJLZ1V6n_pK2-ZYGpj6u/view)
+<div align="center">
+        <img alt="gif demonstration" src="./assets/img/gif-demonstration.gif" width="700" />
+        <br></br>
+        <div>For the full video including audio follow <a href="https://drive.google.com/file/d/1YioDuPf3SD0VFJLZ1V6n_pK2-ZYGpj6u/view">
+            this link
+        </a></div>
+</div>
 
 ## Installation
 To use this application the user will need to clone this repository to their machine.
